@@ -1,3 +1,4 @@
+import re
 import nltk
 from string import ascii_letters, digits
 
@@ -7,7 +8,13 @@ class Preprocessor:
         assert filepath is not None
         self.filepath: str = filepath
         self.raw_text: str = open(self.filepath, "r", encoding="cp1252").read()
-        self.raw_tokens: list[str] = nltk.word_tokenize(self.raw_text)
+        self.delimiters = [" ", "_", "-", ",", "|", ";", ":", "!", "?"]
+        self.raw_tokens: list[str] = self.raw_text.split()
+        for delim in self.delimiters:
+            self.raw_tokens = " ".join(self.raw_tokens).split(delim)
+        self.raw_tokens = " ".join(self.raw_tokens).split()
+
+        # self.raw_tokens: list[str] = nltk.word_tokenize(self.raw_text)
         self.tokens: list[str] = []
         self.alphanumeric = ascii_letters + digits
         self.stop_words = [
