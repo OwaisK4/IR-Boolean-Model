@@ -1,18 +1,29 @@
 from nltk import PorterStemmer
 
-
+"""
+Node class that will contain each document ID and all positions of given
+term in that document ID. Implemented as a self-referential data structure
+(singly linked list).
+"""
 class Node:
     def __init__(self, docID: str, position: int) -> None:
         self.docID = docID
         self.next = None
         self.positions = [position]
 
-
+"""
+Posting list class that will be used throughout the program for all
+query processing operations.
+"""
 class PostingList:
     def __init__(self) -> None:
         self.head = None
         self.size = 0
 
+    """
+    Inserts the document ID and position in the posting list as a new node.
+    If document ID exists, simply appends the position to the documentID node.
+    """
     def insert(self, docID: int, position: int = -1) -> None:
         newNode = Node(docID, position)
         if self.head is None:
@@ -36,6 +47,9 @@ class PostingList:
             newNode.next = current
         self.size += 1
 
+    """
+    Displays the whole posting list. Does not print positions of document IDs.
+    """
     def display(self) -> None:
         current = self.head
         if current is not None:
@@ -46,7 +60,40 @@ class PostingList:
             print(f", {current.docID}", end="")
         print()
 
+    """
+    Returns the whole posting list as a string. Does not print positions of document IDs.
+    """
+    def result(self) -> str:
+        answer = ""
+        current = self.head
+        if current is not None:
+            answer += f"{current.docID}"
+        while current.next is not None:
+            current = current.next
+            answer += f", {current.docID}"
+        return answer
 
+"""
+Main Positional index class that performs all query processing operations.
+Has the following functionality:
+1. Index creation:
+    Takes a list of cleaned tokens with their document IDs and creates a
+    new positional index using a dictionary where the keys are terms and
+    PostingList objects are values.
+2. Query Parsing:
+    Two types of queries can be parsed.
+    i. Simple/Complex Boolean queries:
+        Queries of this form can contain the following special keywords:
+        AND, OR, NOT (case-sensitive)
+        These queries are handled by self.simple_boolean_query() which takes
+        the query terms as a string and maintains a stack for processing
+        posting lists one by one starting from leftmost.
+        Uses the functions: intersect, union and negation for query processing.
+    ii. Positional Boolean queries
+        These queries are handled by self.positional_boolean_query() which also
+        the query terms as a string, but it only works for a positional query of
+        2 operands and 1 K value (i.e. hardcoded).
+"""
 class InvertedIndex:
     def __init__(self) -> None:
         self.head = None
@@ -67,52 +114,6 @@ class InvertedIndex:
             return self.positional_boolean_query(query)  # For positional queries
         else:
             return self.simple_boolean_query(query)
-
-    def positional_boolean_query(self, query_terms: str) -> PostingList:
-        stemmer = PorterStemmer()
-        terms = query_terms.split()
-        if len(terms) != 4:
-            print("Invalid postional query. Exiting.")
-            return None
-        word1 = stemmer.stem(terms[0].lower())
-        word2 = stemmer.stem(terms[1].lower())
-        try:
-            k = int(terms[3])
-        except:
-            print("Invalid postional query. Exiting.")
-            return None
-        p1 = self.index.get(word1, None)
-        p2 = self.index.get(word2, None)
-        if p1 is None or p2 is None:
-            return None
-        p1 = p1.head
-        p2 = p2.head
-        answer = PostingList()
-        # answer = []
-        while p1 is not None and p2 is not None:
-            if p1.docID < p2.docID:
-                p1 = p1.next
-            elif p1.docID > p2.docID:
-                p2 = p2.next
-            else:
-                i, j = 0, 0
-                while i < len(p1.positions) and j < len(p2.positions):
-                    pos1 = p1.positions[i]
-                    pos2 = p2.positions[j]
-                    if abs(pos1 - pos2) <= k:
-                        answer.insert(p1.docID)
-                        break
-                    elif pos1 < pos2:
-                        i += 1
-                    else:
-                        j += 1
-                p1 = p1.next
-                p2 = p2.next
-
-        if answer.size == 0:
-            return None
-        else:
-            return answer
 
     def intersect(self, p1: PostingList, p2: PostingList) -> PostingList:
         if p1 is None or p2 is None:
@@ -225,3 +226,49 @@ class InvertedIndex:
             return stack[0]
         else:
             return None
+
+    def positional_boolean_query(self, query_terms: str) -> PostingList:
+        stemmer = PorterStemmer()
+        terms = query_terms.split()
+        if len(terms) != 4:
+            print("Invalid postional query. Exiting.")
+            return None
+        word1 = stemmer.stem(terms[0].lower())
+        word2 = stemmer.stem(terms[1].lower())
+        try:
+            k = int(terms[3])
+        except:
+            print("Invalid postional query. Exiting.")
+            return None
+        p1 = self.index.get(word1, None)
+        p2 = self.index.get(word2, None)
+        if p1 is None or p2 is None:
+            return None
+        p1 = p1.head
+        p2 = p2.head
+        answer = PostingList()
+        # answer = []
+        while p1 is not None and p2 is not None:
+            if p1.docID < p2.docID:
+                p1 = p1.next
+            elif p1.docID > p2.docID:
+                p2 = p2.next
+            else:
+                i, j = 0, 0
+                while i < len(p1.positions) and j < len(p2.positions):
+                    pos1 = p1.positions[i]
+                    pos2 = p2.positions[j]
+                    if abs(pos1 - pos2) <= k:
+                        answer.insert(p1.docID)
+                        break
+                    elif pos1 < pos2:
+                        i += 1
+                    else:
+                        j += 1
+                p1 = p1.next
+                p2 = p2.next
+
+        if answer.size == 0:
+            return None
+        else:
+            return answer

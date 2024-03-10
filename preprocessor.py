@@ -1,6 +1,15 @@
-import re
 import nltk
-from string import ascii_letters, digits
+from string import ascii_letters
+
+"""
+Preprocessor class that processes each token.
+It works as follows:
+1. Read the raw text from file using cp1252 encoding (Because the given documents contain some Latin-1 characters).
+2. Tokenize them using multiple delimiters (i.e. self.delimiters).
+3. Clean the tokens i.e. casefold, strip whitespace and remove all digits and punctuation.
+4. Stem the tokens using Porter Stemmer imported from nltk library.
+5. Store the cleaned tokens in self.tokens.
+"""
 
 
 class Preprocessor:
@@ -12,7 +21,6 @@ class Preprocessor:
             self.raw_tokens = " ".join(self.raw_tokens).split(delim)
         self.raw_tokens = " ".join(self.raw_tokens).split()
         self.tokens: list[tuple[str, int]] = []
-        # self.alphanumeric = ascii_letters + digit
         self.alphabet = ascii_letters
         self.stop_words = [
             "a",
@@ -59,6 +67,3 @@ class Preprocessor:
                 token = stemmer.stem(token)
                 self.tokens.append((token, i))
             i += 1
-
-    def process(self):
-        self.clean_tokens()
