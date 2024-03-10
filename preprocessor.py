@@ -62,4 +62,3 @@ class Preprocessor:
 
     def process(self):
         self.clean_tokens()
-        # self.tokens = list(set(self.tokens))  # To remove duplicates

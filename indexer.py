@@ -13,7 +13,7 @@ class PostingList:
         self.head = None
         self.size = 0
 
-    def insert(self, docID: int, position: int) -> None:
+    def insert(self, docID: int, position: int = -1) -> None:
         newNode = Node(docID, position)
         if self.head is None:
             self.head = newNode
@@ -60,9 +60,9 @@ class InvertedIndex:
             if token not in self.index:
                 self.index[token] = PostingList()
             self.index[token].insert(docID, position)
-        self.docIDs.insert(docID, -1)
+        self.docIDs.insert(docID)
 
-    def parse_query(self, query: str) -> None:
+    def parse_query(self, query: str) -> PostingList:
         if "/" in query.split():
             return self.positional_boolean_query(query)  # For positional queries
         else:
@@ -83,10 +83,6 @@ class InvertedIndex:
             return None
         p1 = self.index.get(word1, None)
         p2 = self.index.get(word2, None)
-        # print()
-        # p1.display()
-        # p2.display()
-        # print()
         if p1 is None or p2 is None:
             return None
         p1 = p1.head
@@ -94,19 +90,17 @@ class InvertedIndex:
         answer = PostingList()
         # answer = []
         while p1 is not None and p2 is not None:
-            # print(f"Here, {p1.docID}, {p2.docID}")
             if p1.docID < p2.docID:
                 p1 = p1.next
             elif p1.docID > p2.docID:
                 p2 = p2.next
             else:
                 i, j = 0, 0
-                # print("Here")
                 while i < len(p1.positions) and j < len(p2.positions):
                     pos1 = p1.positions[i]
                     pos2 = p2.positions[j]
                     if abs(pos1 - pos2) <= k:
-                        answer.insert(p1.docID, -1)
+                        answer.insert(p1.docID)
                         break
                     elif pos1 < pos2:
                         i += 1
