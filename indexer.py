@@ -2,9 +2,10 @@ from nltk import PorterStemmer
 
 
 class Node:
-    def __init__(self, docID: str) -> None:
+    def __init__(self, docID: str, position: int) -> None:
         self.docID = docID
         self.next = None
+        self.positions = [position]
 
 
 class PostingList:
@@ -12,11 +13,12 @@ class PostingList:
         self.head = None
         self.size = 0
 
-    def insert(self, docID: int) -> None:
-        newNode = Node(docID)
+    def insert(self, docID: int, position: int) -> None:
+        newNode = Node(docID, position)
         if self.head is None:
             self.head = newNode
         elif self.head.docID == docID:
+            self.head.positions.append(position)
             return
         elif self.head.docID > docID:
             newNode.next = self.head
@@ -27,7 +29,8 @@ class PostingList:
             while current is not None and current.docID < docID:
                 previous = current
                 current = current.next
-            if self.head.docID == docID:
+            if current is not None and current.docID == docID:
+                current.positions.append(position)
                 return
             previous.next = newNode
             newNode.next = current
@@ -35,7 +38,9 @@ class PostingList:
 
     def display(self) -> None:
         current = self.head
-        print(current.docID, end="") if current is not None else None
+        if current is not None:
+            # print(f"{current.docID}: {current.positions}", end="")
+            print(f"{current.docID}", end="")
         while current.next is not None:
             current = current.next
             print(f", {current.docID}", end="")
@@ -48,12 +53,14 @@ class InvertedIndex:
         self.index: dict[int, PostingList] = {}
         self.docIDs: PostingList = PostingList()
 
-    def create_index(self, tokens: list[str], docID: int) -> None:
-        for token in tokens:
+    def create_positional_index(
+        self, tokens: list[tuple[str, int]], docID: int
+    ) -> None:
+        for token, position in tokens:
             if token not in self.index:
                 self.index[token] = PostingList()
-            self.index[token].insert(docID)
-        self.docIDs.insert(docID)
+            self.index[token].insert(docID, position)
+        self.docIDs.insert(docID, -1)
 
     def parse_query(self, query: str) -> None:
         if "/" in query.split():
@@ -76,9 +83,10 @@ class InvertedIndex:
             return None
         p1 = self.index.get(word1, None)
         p2 = self.index.get(word2, None)
-        # p1.display()
         # print()
+        # p1.display()
         # p2.display()
+        # print()
         if p1 is None or p2 is None:
             return None
         p1 = p1.head
@@ -98,8 +106,7 @@ class InvertedIndex:
                     pos1 = p1.positions[i]
                     pos2 = p2.positions[j]
                     if abs(pos1 - pos2) <= k:
-                        answer.insert(p1.docID)
-                        # answer.append(p1.docID)
+                        answer.insert(p1.docID, -1)
                         break
                     elif pos1 < pos2:
                         i += 1

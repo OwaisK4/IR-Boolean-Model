@@ -5,18 +5,15 @@ from string import ascii_letters, digits
 
 class Preprocessor:
     def __init__(self, filepath: str = None) -> None:
-        assert filepath is not None
-        self.filepath: str = filepath
-        self.raw_text: str = open(self.filepath, "r", encoding="cp1252").read()
+        self.raw_text: str = open(filepath, "r", encoding="cp1252").read()
         self.delimiters = [" ", "_", "-", ",", "|", ";", ":", "!", "?"]
         self.raw_tokens: list[str] = self.raw_text.split()
         for delim in self.delimiters:
             self.raw_tokens = " ".join(self.raw_tokens).split(delim)
         self.raw_tokens = " ".join(self.raw_tokens).split()
-
-        # self.raw_tokens: list[str] = nltk.word_tokenize(self.raw_text)
-        self.tokens: list[str] = []
-        self.alphanumeric = ascii_letters + digits
+        self.tokens: list[tuple[str, int]] = []
+        # self.alphanumeric = ascii_letters + digit
+        self.alphabet = ascii_letters
         self.stop_words = [
             "a",
             "is",
@@ -50,24 +47,19 @@ class Preprocessor:
         print(self.raw_text)
 
     def clean_tokens(self):
+        stemmer = nltk.PorterStemmer()
+        i = 0
         for token in self.raw_tokens:
             token = token.strip()
             token = token.lower()
             for char in token:
-                if char not in self.alphanumeric:
+                if char not in self.alphabet:
                     token = token.replace(char, "")
-            if token != "" and not token.isdigit():
-                for i in range(0, 10):
-                    token = token.replace(str(i), "")
-            if token != "" and token not in self.stop_words:
-                self.tokens.append(token)
-
-    def stem_tokens(self):
-        stemmer = nltk.PorterStemmer()
-        for i in range(0, len(self.tokens)):
-            self.tokens[i] = stemmer.stem(self.tokens[i])
+            if token != "" and token not in self.stop_words and len(token) > 2:
+                token = stemmer.stem(token)
+                self.tokens.append((token, i))
+            i += 1
 
     def process(self):
         self.clean_tokens()
-        self.stem_tokens()
-        self.tokens = list(set(self.tokens))  # To remove duplicates
+        # self.tokens = list(set(self.tokens))  # To remove duplicates

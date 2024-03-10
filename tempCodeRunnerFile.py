@@ -1,2 +1,2 @@
-query("abstract")
-    # posting.display() if posting is not None else print("NIL")
+.parse_query("transformer model / 100")
+    # posting.display() if pos
