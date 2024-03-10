@@ -57,9 +57,61 @@ class InvertedIndex:
 
     def parse_query(self, query: str) -> None:
         if "/" in query.split():
-            return None  # For positional queries
+            return self.positional_boolean_query(query)  # For positional queries
         else:
             return self.simple_boolean_query(query)
+
+    def positional_boolean_query(self, query_terms: str) -> PostingList:
+        stemmer = PorterStemmer()
+        terms = query_terms.split()
+        if len(terms) != 4:
+            print("Invalid postional query. Exiting.")
+            return None
+        word1 = stemmer.stem(terms[0].lower())
+        word2 = stemmer.stem(terms[1].lower())
+        try:
+            k = int(terms[3])
+        except:
+            print("Invalid postional query. Exiting.")
+            return None
+        p1 = self.index.get(word1, None)
+        p2 = self.index.get(word2, None)
+        # p1.display()
+        # print()
+        # p2.display()
+        if p1 is None or p2 is None:
+            return None
+        p1 = p1.head
+        p2 = p2.head
+        answer = PostingList()
+        # answer = []
+        while p1 is not None and p2 is not None:
+            # print(f"Here, {p1.docID}, {p2.docID}")
+            if p1.docID < p2.docID:
+                p1 = p1.next
+            elif p1.docID > p2.docID:
+                p2 = p2.next
+            else:
+                i, j = 0, 0
+                # print("Here")
+                while i < len(p1.positions) and j < len(p2.positions):
+                    pos1 = p1.positions[i]
+                    pos2 = p2.positions[j]
+                    if abs(pos1 - pos2) <= k:
+                        answer.insert(p1.docID)
+                        # answer.append(p1.docID)
+                        break
+                    elif pos1 < pos2:
+                        i += 1
+                    else:
+                        j += 1
+                p1 = p1.next
+                p2 = p2.next
+
+        if answer.size == 0:
+            return None
+        else:
+            return answer
 
     def intersect(self, p1: PostingList, p2: PostingList) -> PostingList:
         if p1 is None or p2 is None:

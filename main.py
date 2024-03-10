@@ -24,18 +24,26 @@ if __name__ == "__main__":
             filename = int(file.split("/")[-1].split(".")[0])
             preprocessor = Preprocessor(file)
             preprocessor.process()
-            inverted_index.create_index(preprocessor.tokens, filename)
+            inverted_index.create_positional_index(preprocessor.tokens, filename)
         with open(saved_index, "wb") as f:
             pickle.dump(inverted_index, f)
         print("Created inverted index from scratch")
 
-    posting = inverted_index.parse_query("transformer AND model")
+    print(f"Total tokens: {len(inverted_index.index)}")
+    # with open("tokens", "w") as f:
+    #     f.write(str(list(inverted_index.index.keys())))
+    # posting = inverted_index.parse_query("abstract")
+    # posting.display() if posting is not None else print("NIL")
+    posting = inverted_index.parse_query("transformer model / 100")
     posting.display() if posting is not None else print("NIL")
-    posting = inverted_index.parse_query("cancer AND learning")
+    posting = inverted_index.parse_query("artificial intelligence / 3")
     posting.display() if posting is not None else print("NIL")
-    posting = inverted_index.parse_query("NOT agent OR agent")
-    posting.display() if posting is not None else print("NIL")
-    posting = inverted_index.parse_query(
-        "aas AND owais OR cancer AND disease OR doctor"
-    )
-    posting.display() if posting is not None else print("NIL")
+    # print(posting.head.positions)
+    # posting = inverted_index.parse_query("cancer AND learning")
+    # posting.display() if posting is not None else print("NIL")
+    # posting = inverted_index.parse_query("NOT agent OR agent")
+    # posting.display() if posting is not None else print("NIL")
+    # posting = inverted_index.parse_query(
+    #     "aas AND owais OR cancer AND disease OR doctor"
+    # )
+    # posting.display() if posting is not None else print("NIL")
