@@ -5,16 +5,21 @@ Node class that will contain each document ID and all positions of given
 term in that document ID. Implemented as a self-referential data structure
 (singly linked list).
 """
+
+
 class Node:
     def __init__(self, docID: str, position: int) -> None:
         self.docID = docID
         self.next = None
         self.positions = [position]
 
+
 """
 Posting list class that will be used throughout the program for all
 query processing operations.
 """
+
+
 class PostingList:
     def __init__(self) -> None:
         self.head = None
@@ -24,6 +29,7 @@ class PostingList:
     Inserts the document ID and position in the posting list as a new node.
     If document ID exists, simply appends the position to the documentID node.
     """
+
     def insert(self, docID: int, position: int = -1) -> None:
         newNode = Node(docID, position)
         if self.head is None:
@@ -50,6 +56,7 @@ class PostingList:
     """
     Displays the whole posting list. Does not print positions of document IDs.
     """
+
     def display(self) -> None:
         current = self.head
         if current is not None:
@@ -63,6 +70,7 @@ class PostingList:
     """
     Returns the whole posting list as a string. Does not print positions of document IDs.
     """
+
     def result(self) -> str:
         answer = ""
         current = self.head
@@ -72,6 +80,7 @@ class PostingList:
             current = current.next
             answer += f", {current.docID}"
         return answer
+
 
 """
 Main Positional index class that performs all query processing operations.
@@ -93,7 +102,11 @@ Has the following functionality:
         These queries are handled by self.positional_boolean_query() which also
         the query terms as a string, but it only works for a positional query of
         2 operands and 1 K value (i.e. hardcoded).
+        It will return all document IDs that contain the two words withing k
+        distance of each other.
 """
+
+
 class InvertedIndex:
     def __init__(self) -> None:
         self.head = None

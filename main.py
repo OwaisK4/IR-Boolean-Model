@@ -87,3 +87,12 @@ if __name__ == "__main__":
 
     # Run the application
     sys.exit(app.exec_())
+
+    # Proof of concept for command-line
+    while True:
+        query = input("Enter query: ")
+        posting = inverted_index.parse_query(query)
+        if posting == None:
+            print("NIL")
+        else:
+            print(posting.result())
